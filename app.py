@@ -11,15 +11,21 @@ app.config['SECRET_KEY'] = "secretkey"
 Bootstrap(app)
 
 
-
 class LoginForm(FlaskForm):
     username = StringField('username',validators=[InputRequired(),Length(min=4,max=15) ] )
     password = PasswordField('password',validators=[InputRequired(),Length(min=8,max=80) ] )
     remember = BooleanField('Remenber me')
 
+
+class RegisterForm(FlaskForm):
+    username = StringField('username',validators=[InputRequired(),Length(min=4,max=15) ] )
+    password = PasswordField('password',validators=[InputRequired(),Length(min=8,max=80) ] )
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
 
 @app.route('/login',methods=['GET','POST'])
 def login():
@@ -37,7 +43,8 @@ def login():
 
     return render_template('login.html',form=form)
 
-"""@app.route('/signup',methods=['GET','POST'])
+
+@app.route('/signup',methods=['GET','POST'])
 def signup():
     from database import db,User
     form = RegisterForm()
@@ -50,10 +57,12 @@ def signup():
         return '<h1> new user has been added </h1>'
         #return  '<h1> '+form.username.data +' '+form.email.data+' '+ form.password.data+ '</h1>'
     return render_template('signup.html',form=form)
-"""
+
+
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
 
+
 if __name__ == '__main__':
-    app.run(debug=True,port=1010)
+    app.run()
