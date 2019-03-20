@@ -5,7 +5,7 @@ from sqlalchemy import Table, Column, Integer, ForeignKey
 
 
 
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS']= True
 db = SQLAlchemy(app)
 
@@ -14,6 +14,7 @@ class User(db.Model):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
+    role = db.Column(db.String(50))
 
 
 
