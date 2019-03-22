@@ -36,6 +36,9 @@ def clients_R():
 @app.route('/clients_A')
 def clients_A():
     return render_template('clients_A.html')
+@app.route('/creer_nouveau_compte')
+def nouveau_compte():
+    return render_template('signup.html')
 
 @app.route('/login',methods=['GET','POST'])
 def login():
@@ -61,21 +64,20 @@ def login():
 
     return render_template('login.html',form=form)
 
-"""""@app.route('/signup',methods=['GET','POST'])
+@app.route('/signup',methods=['GET','POST'])
 def signup():
     from database import db,User
     form = RegisterForm()
-
     if form.validate_on_submit():
         hashed_password= generate_password_hash(form.password.data,method='sha256')
-        new_user = User(username=form.username.data, password=hashed_password,email=form.email.data)
+        new_user = User(username=form.username.data,email=form.email.data, password=hashed_password,role='utilisateur')
         db.session.add(new_user)
         db.session.commit()
         return '<h1> new user has been added </h1>'
         #return  '<h1> '+form.username.data +' '+form.email.data+' '+ form.password.data+ '</h1>'
     return render_template('signup.html',form=form)
 
-"""""
+
 @app.route('/dashboard')
 def dashboard():
     return render_template('dashboard.html')
