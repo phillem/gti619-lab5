@@ -1,4 +1,3 @@
-
 import database
 from database import db
 from werkzeug.security import generate_password_hash
@@ -10,13 +9,11 @@ if __name__ == "__main__":
     db.create_all()
     print("database created")
 
-
 admin = database.User()
 admin.username = 'administrateur'
 admin.email = 'administrateur@hotmail.com'
 admin.password = generate_password_hash('administrateur', method='sha256')
 admin.role = 'administrateur'
-
 
 utilisateur1 = database.User()
 utilisateur1.username = 'utilisateur1'
@@ -37,14 +34,10 @@ db.session.commit()
 db.session.add(utilisateur2)
 db.session.commit()
 
+#   user = database.User()
+#    user.email = email[i]
+#    user.password = password[i]
 
-
-
-    #   user = database.User()
-    #    user.email = email[i]
-    #    user.password = password[i]
-
-    #    users +=[user]
-    #    db.session.add(user)
-    #    db.session.commit()
-
+#    users +=[user]
+#    db.session.add(user)
+#    db.session.commit()
