@@ -4,6 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length
 from werkzeug.security import generate_password_hash, check_password_hash
+from models import security_parameters as sp
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
@@ -11,9 +12,10 @@ app.config['SECRET_KEY'] = "secretkey"
 Bootstrap(app)
 
 
+
 class LoginForm(FlaskForm):
-    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
+    username = StringField('username', validators=[InputRequired(), Length(min=sp.get_un_min(), max=sp.get_un_max())])
+    password = PasswordField('password', validators=[InputRequired(), Length(min=sp.get_pw_min(), max=sp.get_pw_max())])
     remember = BooleanField('Remember me')
 
 
