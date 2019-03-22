@@ -30,7 +30,12 @@ def index():
 @app.route('/parametrage')
 def parametrage():
     return render_template('parametrage.html')
-
+@app.route('/clients_R')
+def clients_R():
+    return render_template('clients_R.html')
+@app.route('/clients_A')
+def clients_A():
+    return render_template('clients_A.html')
 
 @app.route('/login',methods=['GET','POST'])
 def login():
