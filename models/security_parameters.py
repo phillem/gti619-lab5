@@ -1,36 +1,12 @@
-passwordMin = 8
-passwordMax = 80
-usernameMin = 4
-usernameMax = 15
+class security_parameters():
+    failedAttemptsMax = 5
+    pwCapitalAmount = 0
+    pwNumberAmount = 0
+    pwSpecialCharacterAmount = 0
 
+    def __init__(self):
+        self.passwordMin = 8
+        self.passwordMax = 8000
+        self.usernameMin = 4
+        self.usernameMax = 1500
 
-def get_pw_min():
-    return passwordMin
-
-
-def set_pw_min(value):
-    passwordMin = value
-
-
-def get_pw_max():
-    return passwordMax
-
-
-def set_pw_max(value):
-    passwordMax = value
-
-
-def get_un_min():
-    return usernameMin
-
-
-def set_un_min(value):
-    usernameMin = value
-
-
-def get_un_max():
-    return usernameMax
-
-
-def set_un_max(value):
-    usernameMax = value

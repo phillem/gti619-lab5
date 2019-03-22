@@ -4,25 +4,26 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField
 from wtforms.validators import InputRequired, Email, Length
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import security_parameters as sp
+from models.security_parameters import security_parameters
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
 
 Bootstrap(app)
 
+sp = security_parameters()
 
 
 class LoginForm(FlaskForm):
-    username = StringField('username', validators=[InputRequired(), Length(min=sp.get_un_min(), max=sp.get_un_max())])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=sp.get_pw_min(), max=sp.get_pw_max())])
+    username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
+    password = PasswordField('password', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
     remember = BooleanField('Remember me')
 
 
 class RegisterForm(FlaskForm):
-    username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
+    username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
     email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=50)])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=8, max=80)])
+    password = PasswordField('password', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
 
 
 @app.route('/')
