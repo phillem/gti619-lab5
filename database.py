@@ -12,5 +12,6 @@ class User(db.Model):
     username = db.Column(db.String(15), unique=True)
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
-    #nombre_aleatoire = db.Column(db.Integer)
+    nombre_aleatoire = db.Column(db.Integer)
+    version = db.Column(db.String(15))
     role = db.Column(db.String(50))

@@ -4,6 +4,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField,PasswordField,BooleanField
 from wtforms.validators import InputRequired,Email,Length
 from werkzeug.security import generate_password_hash,check_password_hash
+import random
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
@@ -21,6 +22,7 @@ class RegisterForm(FlaskForm):
     username = StringField('username', validators=[InputRequired(), Length(min=4, max=15)])
     email = StringField('email',validators=[InputRequired(),Email(message='Invalide email'),Length(max=50)])
     password = PasswordField('password',validators=[InputRequired(),Length(min=8,max=80) ] )
+    role = StringField('role', validators=[InputRequired(), Length(min=4, max=15)])
 
 
 @app.route('/')
@@ -46,9 +48,9 @@ def login():
     form = LoginForm()
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
+        user = User.query.filter_by(username=form.username.data).first() #prend le user qui correspond à username
         if user:
-            if check_password_hash(user.password,form.password.data) :
+            if check_password_hash(user.password, form.password.data+user.nombre_aleatoire) :
                 if user.role =='administrateur' :
                     return redirect(url_for('dashboard_admin'))
                 elif user.role == 'C_affaire' :
@@ -58,19 +60,33 @@ def login():
 
 
                 return redirect(url_for('dashboard'))
-        return '<h1> the username or password is incorrect </h1>'
+        return '<h1> '+  'username : '+  user.nombre_aleatoire+ ' resultat : '+ str(check_password_hash(user.password, form.password.data+user.nombre_aleatoire))\
+               + 'password dans la BD : ' + user.password+\
+               'form.password.data+user.nombre_aleatoire :' + form.password.data+user.nombre_aleatoire+' </h1>'
+
         # username are supposed to be unique
          #return  '<h1> '+form.username.data +' '+form.password.data+'</h1>'
 
     return render_template('login.html',form=form)
+
+
+def random_nombre() :
+    ALPHABET = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    chars = []
+    for i in range(16):
+        chars.append(random.choice(ALPHABET))
+    return "".join(chars)
+
+
 
 @app.route('/signup',methods=['GET','POST'])
 def signup():
     from database import db,User
     form = RegisterForm()
     if form.validate_on_submit():
-        hashed_password= generate_password_hash(form.password.data,method='sha256')
-        new_user = User(username=form.username.data,email=form.email.data, password=hashed_password,role='utilisateur')
+        b = random_nombre()
+        hashed_password= generate_password_hash(form.password.data+b,method='sha256')
+        new_user = User(username=form.username.data,email=form.email.data, password=hashed_password,nombre_aleatoire=b,version='sha256',role=form.role.data)
         db.session.add(new_user)
         db.session.commit()
         return '<h1> new user has been added </h1>'
