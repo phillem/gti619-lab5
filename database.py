@@ -1,6 +1,8 @@
 from flask_sqlalchemy import SQLAlchemy
-from app import app
+from flask import Flask
 from sqlalchemy import Table, Column, Integer, ForeignKey
+
+app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
@@ -14,3 +16,16 @@ class User(db.Model):
     password = db.Column(db.String(80))
     nombre_aleatoire = db.Column(db.Integer)
     role = db.Column(db.String(50))
+
+
+class SecurityParameters(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    failedAttemptsMax = db.Column(db.Integer)
+    pwCapitalAmount = db.Column(db.Integer)
+    pwNumberAmount = db.Column(db.Integer)
+    pwSpecialCharacterAmount = db.Column(db.Integer)
+    passwordMin = db.Column(db.Integer)
+    passwordMax = db.Column(db.Integer)
+    usernameMin = db.Column(db.Integer)
+    usernameMax = db.Column(db.Integer)
+

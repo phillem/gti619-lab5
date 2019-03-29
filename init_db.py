@@ -27,11 +27,23 @@ utilisateur2.email = 'utilisateur2@hotmail.com'
 utilisateur2.password = generate_password_hash('utilisateur2', method='sha256')
 utilisateur2.role = 'C_residentiel'
 
+securityParameters = database.SecurityParameters()
+securityParameters.pwSpecialCharacterAmount = 0
+securityParameters.pwNumberAmount = 0
+securityParameters.pwCapitalAmount = 0
+securityParameters.failedAttemptsMax = 5
+securityParameters.usernameMin = 4
+securityParameters.usernameMax = 80
+securityParameters.passwordMin = 4
+securityParameters.passwordMax = 20
+
 db.session.add(admin)
 db.session.commit()
 db.session.add(utilisateur1)
 db.session.commit()
 db.session.add(utilisateur2)
+db.session.commit()
+db.session.add(securityParameters)
 db.session.commit()
 
 #   user = database.User()

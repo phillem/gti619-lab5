@@ -25,6 +25,9 @@
               <li class="{{ 'active' if active_page == 'login' else '' }}">
               <a id="login" href="{{ url_for('login') }}">Login</a>
               </li>
+              <li class="{{ 'active' if active_page == 'security_parameters' else '' }}">
+              <a id="security_parameters" href="{{ url_for('security_parameters') }}">Manage</a>
+              </li>
           </ul>
         </div><!--/.nav-collapse -->
       </div>
