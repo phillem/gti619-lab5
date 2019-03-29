@@ -48,21 +48,36 @@ def clients_A():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    import database
     from database import db, User
     form = LoginForm()
+
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
+        user_connection = database.Connection_log(userId=user.id, is_succesful=True)
         if user:
             if check_password_hash(user.password, form.password.data):
+
                 if user.role == 'administrateur':
+                    db.session.add(user_connection)
+                    db.session.commit()
                     return redirect(url_for('dashboard_admin'))
                 elif user.role == 'C_affaire':
+                    db.session.add(user_connection)
+                    db.session.commit()
                     return redirect(url_for('dashboard_C_affaire'))
                 else:
+                    db.session.add(user_connection)
+                    db.session.commit()
                     return redirect(url_for('dashboard_C_residentiels'))
 
                 return redirect(url_for('dashboard'))
+            else :
+                user_connection.is_succesful = False
+                db.session.add(user_connection)
+                db.session.commit()
+
         return '<h1> the username or password is incorrect </h1>'
         # username are supposed to be unique
         # return  '<h1> '+form.username.data +' '+form.password.data+'</h1>'
