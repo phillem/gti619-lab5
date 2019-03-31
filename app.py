@@ -1,10 +1,14 @@
-from flask import Flask, render_template, redirect, url_for
+from datetime import timedelta
+
+import flask
+from flask import Flask, render_template, redirect, url_for, make_response, session, g
 from flask_bootstrap import Bootstrap
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField
 from wtforms.validators import InputRequired, Email, Length, DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import db, SecurityParameters
+from database import db, SecurityParameters, User
 
 
 
@@ -13,6 +17,10 @@ app.config['SECRET_KEY'] = "secretkey"
 
 Bootstrap(app)
 
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+login_manager.login_view = 'login'
 
 
 class LoginForm(FlaskForm):
@@ -63,13 +71,13 @@ def clients_A():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    from database import db, User
     form = LoginForm()
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user:
             if check_password_hash(user.password, form.password.data):
+                login_user(user, remember=form.remember.data)
                 if user.role == 'administrateur':
                     return redirect(url_for('dashboard_admin'))
                 elif user.role == 'C_affaire':
@@ -85,7 +93,22 @@ def login():
     return render_template('login.html', form=form)
 
 
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+@app.before_request
+def before_request():
+    g.user = current_user
+    session.permanent = True
+    app.permanent_session_lifetime = timedelta(minutes=5)
+
+
 @app.route('/security_parameters', methods=['GET', 'POST'])
+@login_required
 def security_parameters():
     sp = SecurityParameters.query.first()
     form = SecurityParametersForm(obj=sp)
@@ -140,6 +163,11 @@ def dashboard_C_affaire():
 @app.route('/dashboard_C_residentiels')
 def dashboard_C_residentiels():
     return render_template('dashboard.C_residentiels.html')
+
+
+@login_manager.user_loader
+def load_user(id):
+    return User.query.get(int(id))
 
 
 if __name__ == '__main__':
