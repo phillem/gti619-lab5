@@ -62,29 +62,33 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/parametrage')
-def parametrage():
-    return render_template('parametrage.html')
-
-
 @app.route('/clients_R')
 def clients_R():
-    return render_template('clients_R.html')
+    if current_user.role == "administrateur" or current_user.role == "C_residentiel":
+        render_template('clients_R.html')
+    return render_template('index.html')
 
 
 @app.route('/clients_A')
 def clients_A():
-    return render_template('clients_A.html')
+    if current_user.role == "administrateur" or current_user.role == "C_affaire":
+        render_template('clients_A.html')
+    return render_template('index.html')
 
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    error = None
     form = LoginForm()
+    sp = SecurityParameters.query.first()
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
         if user:
-            if check_password_hash(user.password, form.password.data):
+            if user.isBlocked:
+                return render_template('login.html', form=form, error='Votre compte est bloque, trop de tentatives')
+            elif check_password_hash(user.password, form.password.data):
+                user.failedAttempts = 0
                 login_user(user, remember=form.remember.data)
                 if user.role == 'administrateur':
                     return redirect(url_for('dashboard_admin'))
@@ -92,13 +96,14 @@ def login():
                     return redirect(url_for('dashboard_C_affaire'))
                 elif user.role == 'C_residentiels':
                     return redirect(url_for('dashboard_C_residentiels'))
+            else:
+                user.failedAttempts += 1
+                if user.failedAttempts >= sp.failedAttemptsMax:
+                    user.isBlocked = True
+                db.session.commit()
+        error = 'Utilisateur ou le mot de passe est incorrect. Tentatives ', str(user.failedAttempts), ' de ', str(sp.failedAttemptsMax)
 
-                return redirect(url_for('dashboard'))
-        return '<h1> the username or password is incorrect </h1>'
-        # username are supposed to be unique
-        # return  '<h1> '+form.username.data +' '+form.password.data+'</h1>'
-
-    return render_template('login.html', form=form)
+    return render_template('login.html', form=form, error=error)
 
 
 @app.route('/logout')

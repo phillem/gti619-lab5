@@ -16,6 +16,8 @@ class User(db.Model):
     email = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(80))
     nombre_aleatoire = db.Column(db.Integer)
+    failedAttempts = db.Column(db.Integer, default=0)
+    isBlocked = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(50))
 
     def is_authenticated(self):

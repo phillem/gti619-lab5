@@ -2,8 +2,8 @@ import database
 from database import db
 from werkzeug.security import generate_password_hash
 
+
 if __name__ == "__main__":
-    from database import db
     db.drop_all()
     print("creating database")
     db.create_all()
