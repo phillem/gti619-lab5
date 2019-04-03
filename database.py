@@ -50,3 +50,19 @@ class SecurityParameters(db.Model):
     usernameMin = db.Column(db.Integer)
     usernameMax = db.Column(db.Integer)
 
+
+class Client(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100))
+    age = db.Column(db.Integer())
+    address = db.Column(db.String(500))
+    phone = db.Column(db.String(10))
+    typeClient = db.Column(db.String(20))
+
+    def __init__(self, name, age, address, phone, typeClient):
+        self.name = name
+        self.age = age
+        self.address = address
+        self.phone = phone
+        self.typeClient = typeClient
+

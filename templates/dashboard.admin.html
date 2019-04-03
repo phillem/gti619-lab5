@@ -2,7 +2,7 @@
 
 
 {% extends "base.html" %}
-{% set active_page = "dashboard_admin" %}
+{% set active_page = "dashboard" %}
 
 {% block title %}
 Dashboard
@@ -14,12 +14,10 @@ Dashboard
 {% endblock %}
 
 {% block content %}
-
-
     <div class="container-fluid">
       <div class="row">
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <h1 id = 'admin' class="page-header">Welcome Administrateur </h1>
+          <h1 id = 'admin' class="page-header">Welcome Administrateur</h1>
 
           <div class="row placeholders">
             <div class="col-xs-6 col-sm-3 placeholder">
@@ -28,11 +26,11 @@ Dashboard
             </div>
             <div class="col-xs-6 col-sm-3 placeholder">
               <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-                <a href="{{ url_for('clients_R') }}"><h4>Liste des clients résidentiels</h4></a>
+                <a href="{{ url_for('clients_residentiels') }}"><h4>Liste des clients résidentiels</h4></a>
             </div>
             <div class="col-xs-6 col-sm-3 placeholder">
               <img src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" width="200" height="200" class="img-responsive" alt="Generic placeholder thumbnail">
-                <a href="{{ url_for('clients_A') }}"><h4>Liste des clients d’affaire</h4></a>
+                <a href="{{ url_for('clients_affaires') }}"><h4>Liste des clients d’affaire</h4></a>
             </div>
         </div>
       </div>

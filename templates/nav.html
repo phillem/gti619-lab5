@@ -23,7 +23,19 @@
                       <li class="{{ 'active' if active_page == 'index' else '' }}">
                           <a id="index" href="{{ url_for('index') }}">Home</a>
                       </li>
-                      <li class="{{ 'active' if active_page == 'security_parameters' else '' }}">
+                      <li class="{{ 'active' if active_page == 'dashboard' else '' }}">
+                          {% if g.user.role == 'administrateur' %}
+                              <a id="dashboard_admin" href="{{ url_for('dashboard_admin') }}">Dashboard</a>
+                          {% endif %}
+                          {% if g.user.role == 'C_affaire' %}
+                              <a id="dashboard_clients_affaire" href="{{ url_for('dashboard_clients_affaires') }}">Dashboard</a>
+                          {% endif %}
+                          {% if g.user.role == 'C_residentiel' %}
+                              <a id="dashboard_clients_residentiels" href="{{ url_for('dashboard_clients_residentiels') }}">Dashboard</a>
+                          {% endif %}
+                      </li>
+
+                          <li class="{{ 'active' if active_page == 'security_parameters' else '' }}">
                           <a id="security_parameters" href="{{ url_for('security_parameters') }}">Manage</a>
                       </li>
                       <li class="{{ 'active' if active_page == 'changermdp' else '' }}">

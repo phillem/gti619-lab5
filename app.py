@@ -1,14 +1,14 @@
 from datetime import timedelta
 
-import flask
 from flask import Flask, render_template, redirect, url_for, make_response, session, g
 from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_table import Col, Table
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField
 from wtforms.validators import InputRequired, Email, Length, DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
-from database import db, SecurityParameters, User
+from database import db, SecurityParameters, User, Client
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
@@ -19,6 +19,14 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 
 login_manager.login_view = 'login'
+
+
+class TableClients(Table):
+    id = Col('Id', show=False)
+    name = Col('Nom')
+    age = Col('Age')
+    address = Col('Adresse')
+    phone = Col('Telephone')
 
 
 class LoginForm(FlaskForm):
@@ -41,6 +49,7 @@ class changementmdpForm(FlaskForm):
                               validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
     password2 = PasswordField('nouveau mot de passe',
                               validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+
     password3 = PasswordField('Retapez le nouveau mot de passe',
                               validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
 
@@ -62,20 +71,6 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/clients_R')
-def clients_R():
-    if current_user.role == "administrateur" or current_user.role == "C_residentiel":
-        render_template('clients_R.html')
-    return render_template('index.html')
-
-
-@app.route('/clients_A')
-def clients_A():
-    if current_user.role == "administrateur" or current_user.role == "C_affaire":
-        render_template('clients_A.html')
-    return render_template('index.html')
-
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
@@ -89,13 +84,14 @@ def login():
                 return render_template('login.html', form=form, error='Votre compte est bloque, trop de tentatives')
             elif check_password_hash(user.password, form.password.data):
                 user.failedAttempts = 0
+                db.session.commit()
                 login_user(user, remember=form.remember.data)
                 if user.role == 'administrateur':
                     return redirect(url_for('dashboard_admin'))
                 elif user.role == 'C_affaire':
-                    return redirect(url_for('dashboard_C_affaire'))
-                elif user.role == 'C_residentiels':
-                    return redirect(url_for('dashboard_C_residentiels'))
+                    return redirect(url_for('dashboard_clients_affaires'))
+                elif user.role == 'C_residentiel':
+                    return redirect(url_for('dashboard_clients_residentiels'))
             else:
                 user.failedAttempts += 1
                 if user.failedAttempts >= sp.failedAttemptsMax:
@@ -123,22 +119,24 @@ def before_request():
 @app.route('/security_parameters', methods=['GET', 'POST'])
 @login_required
 def security_parameters():
-    sp = SecurityParameters.query.first()
-    form = SecurityParametersForm(obj=sp)
-    if form.validate_on_submit():
-        sp.id = form.id.data
-        sp.usernameMin = form.usernameMin.data
-        sp.usernameMax = form.usernameMax.data
-        sp.passwordMin = form.passwordMin.data
-        sp.passwordMax = form.passwordMax.data
-        sp.pwSpecialCharacterAmount = form.pwSpecialCharacterAmount.data
-        sp.pwNumberAmount = form.pwNumberAmount.data
-        sp.pwCapitalAmount = form.pwCapitalAmount.data
-        sp.failedAttemptsMax = form.failedAttemptsMax.data
-        db.session.commit()
+    if current_user.role == "administrateur":
+        sp = SecurityParameters.query.first()
+        form = SecurityParametersForm(obj=sp)
+        if form.validate_on_submit():
+            sp.id = form.id.data
+            sp.usernameMin = form.usernameMin.data
+            sp.usernameMax = form.usernameMax.data
+            sp.passwordMin = form.passwordMin.data
+            sp.passwordMax = form.passwordMax.data
+            sp.pwSpecialCharacterAmount = form.pwSpecialCharacterAmount.data
+            sp.pwNumberAmount = form.pwNumberAmount.data
+            sp.pwCapitalAmount = form.pwCapitalAmount.data
+            sp.failedAttemptsMax = form.failedAttemptsMax.data
+            db.session.commit()
 
+            return render_template('security_parameters.html', form=form)
         return render_template('security_parameters.html', form=form)
-    return render_template('security_parameters.html', form=form)
+    return redirect(url_for('index', error='Acces interdit'))
 
 
 """""@app.route('/signup',methods=['GET','POST'])
@@ -162,7 +160,7 @@ def signup():
 def changermdp():
     from database import db, User
     form = changementmdpForm()
-    user = User.query.filter_by(username='administrateur').first()
+    user = current_user
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
         if form.password2.data == form.password3.data:
@@ -181,19 +179,48 @@ def dashboard():
     return render_template('dashboard.html')
 
 
-@app.route('/dashboard.admin')
+@app.route('/dashboard_admin')
+@login_required
 def dashboard_admin():
-    return render_template('dashboard.admin.html')
+    if current_user.role == "administrateur":
+        return render_template('dashboard.admin.html')
+    return redirect(url_for('index', error='Acces interdit'))
 
 
-@app.route('/dashboard.C_affaire')
-def dashboard_C_affaire():
-    return render_template('dashboard.C_affaire.html')
+@app.route('/dashboard_clients_affaires')
+@login_required
+def dashboard_clients_affaires():
+    if current_user.role == "administrateur" or current_user.role == "C_affaire":
+        return render_template('dashboard_clients_affaires.html')
+    return redirect(url_for('index', error='Acces interdit'))
 
 
-@app.route('/dashboard_C_residentiels')
-def dashboard_C_residentiels():
-    return render_template('dashboard.C_residentiels.html')
+@app.route('/dashboard_clients_residentiels')
+@login_required
+def dashboard_clients_residentiels():
+    if current_user.role == "administrateur" or current_user.role == "C_residentiel":
+        return render_template('dashboard_clients_residentiels.html')
+    return redirect(url_for('index', error='Acces interdit'))
+
+
+@app.route('/clients_affaires')
+@login_required
+def clients_affaires():
+    if current_user.role == "administrateur" or current_user.role == "C_affaire":
+        data = Client.query.filter_by(typeClient='affaire').all()
+        table = TableClients(data)
+        return render_template('clients_affaires.html', table=table)
+    return redirect(url_for('index', error='Acces interdit'))
+
+
+@app.route('/clients_residentiels')
+@login_required
+def clients_residentiels():
+    if current_user.role == "administrateur" or current_user.role == "C_residentiel":
+        data = Client.query.filter_by(typeClient='residentiel').all()
+        table = TableClients(data)
+        return render_template('clients_residentiels.html', table=table)
+    return redirect(url_for('index', error='Acces interdit'))
 
 
 @login_manager.user_loader
