@@ -26,8 +26,12 @@
                       <li class="{{ 'active' if active_page == 'security_parameters' else '' }}">
                           <a id="security_parameters" href="{{ url_for('security_parameters') }}">Manage</a>
                       </li>
-                      <li><a href="{{ url_for('changermdp') }}">Reset password</a></li>
-                      <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                      <li class="{{ 'active' if active_page == 'changermdp' else '' }}">>
+                      <a href="{{ url_for('changermdp') }}">Reset password</a>
+                      </li>
+                      <li>
+                          <a href="{{ url_for('logout') }}">Logout</a>
+                      </li>
 
                   {% elif not g.user.is_authenticated %}
                       <li class="{{ 'active' if active_page == 'index' else '' }}">

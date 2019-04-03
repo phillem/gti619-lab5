@@ -10,8 +10,6 @@ from wtforms.validators import InputRequired, Email, Length, DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db, SecurityParameters, User
 
-
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
 
@@ -39,9 +37,12 @@ class RegisterForm(FlaskForm):
 
 class changementmdpForm(FlaskForm):
     sp = SecurityParameters.query.first()
-    password1 = PasswordField('ancien mot de passe', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
-    password2= PasswordField('nouveau mot de passe', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
-    password3 = PasswordField('Retapez le nouveau mot de passe', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+    password1 = PasswordField('ancien mot de passe',
+                              validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+    password2 = PasswordField('nouveau mot de passe',
+                              validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+    password3 = PasswordField('Retapez le nouveau mot de passe',
+                              validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
 
 
 class SecurityParametersForm(FlaskForm):
@@ -150,22 +151,25 @@ def signup():
     return render_template('signup.html',form=form)
 
 """""
-@app.route('/changermdp',methods=['GET', 'POST'])
+
+
+@app.route('/changermdp', methods=['GET', 'POST'])
 def changermdp():
     from database import db, User
     form = changementmdpForm()
     user = User.query.filter_by(username='administrateur').first()
     # this function returns true if the form both submitted.
     if form.validate_on_submit():
-        if form.password2.data == form.password3.data :
-            if check_password_hash(user.password,form.password1.data) :
+        if form.password2.data == form.password3.data:
+            if check_password_hash(user.password, form.password1.data):
                 user.password = generate_password_hash(form.password2.data, method='sha256')
                 db.session.commit()
-            else :
+            else:
                 return '<h1> L ancien mot de passe rentré est incorrect </h1>'
-        else :
+        else:
             return "les deux mot de passe ne sont pas similaires"
     return render_template('changermdp.html', form=form)
+
 
 @app.route('/dashboard')
 def dashboard():
