@@ -6,7 +6,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_table import Col, Table
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField,SelectField
-from wtforms.validators import InputRequired, Email, Length, DataRequired
+from wtforms.validators import InputRequired, Email, Length, DataRequired,ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db, SecurityParameters, User, Client
 from init_db import random_alphanumeric
@@ -22,6 +22,39 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'
 
 
+
+tab=['£','!','@','+','*','*','$','=','£','%']
+
+def is_special_character(l):
+    if l in tab :
+        return l
+
+def nbr_special_character(s) :
+    count = 0
+    for x in s:
+        if is_special_character(x):
+            count = count + 1
+    return count
+
+
+def nbr_uppercase(s):
+    count = 0
+    for i in s :
+        if (i.islower()):
+            count = count + 1
+    return count
+
+def nbr_lowercase(s):
+    count = 0
+    for i in s :
+        if (i.isupper()):
+            count = count + 1
+    return count
+
+def nbr_chiffre(s):
+    return sum(c.isdigit() for c in s)
+
+
 class TableClients(Table):
     id = Col('Id', show=False)
     name = Col('Nom')
@@ -33,19 +66,63 @@ class TableClients(Table):
 
 
 class LoginForm(FlaskForm):
+
     sp = SecurityParameters.query.first()
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
     remember = BooleanField('Remember me')
 
 
+
+
 class RegisterForm(FlaskForm):
+    sp = SecurityParameters.query.first()
+
+    def validator_form_uppercase(form,field):
+        sp = SecurityParameters.query.first()
+        if(nbr_uppercase(field.data)!=sp.pwCapitalAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwCapitalAmount)+' majuscules')
+
+
+    def validator_form_lowercase(form,field):
+        sp = SecurityParameters.query.first()
+        if(nbr_lowercase(field.data)!=sp.pwlowercaseAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwlowercaseAmount)+'minuscules')
+
+    def validator_form_chiffre(form, field):
+        sp = SecurityParameters.query.first()
+        if (nbr_lowercase(field.data) != sp.pwlowercaseAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'minuscules')
+
+    def validator_form_special_character(form,field):
+        sp = SecurityParameters.query.first()
+        if (nbr_special_character(field.data) != sp.pwSpecialCharacterAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')
+
+    '''def validator_password(form, field):
+        from database import db,Passwords
+        sp = SecurityParameters.query.first()
+        bool = False
+        count = 0
+        passwords = Passwords.query.limit(sp.pwlastpassword)
+
+        while bool==False & count<sp.pwlastpassword :
+            if check_password_hash(field.data,passwords.get(count)):
+                bool = True
+            count=count+1
+        if bool==False :
+            raise ValidationError('Veuillez trouver un autre mot de passe')'''
+
+
     choices = [('C_affaire', 'Préposé aux clients d affaires' ), ('C_residentiel', 'Préposé aux clients résidentiels')]
 
-    sp = SecurityParameters.query.first()
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
     email = StringField('email', validators=[InputRequired(), Email(message='email invalide'), Length(max=50)])
-    password = PasswordField('Saisir un mot de passe', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+
+    password_length = Length(min=sp.passwordMin, max=sp.passwordMax ,message='longueur doit etre entre '+str(sp.passwordMin)+'et '+str(sp.passwordMax))
+    password_required = InputRequired(message='PASSWORD_NOT_PROVIDED')
+
+    password = PasswordField('Saisir un mot de passe', validators=[password_required,password_length,validator_form_uppercase,validator_form_lowercase,validator_form_chiffre,validator_form_special_character])
     roles = SelectField(u'Role de l utilisateur', validators=[DataRequired()], choices=choices)
 
 
@@ -69,6 +146,8 @@ class SecurityParametersForm(FlaskForm):
     pwSpecialCharacterAmount = IntegerField('Amount of special characters in password', validators=[DataRequired()])
     pwNumberAmount = IntegerField('Amount of numbers in password', validators=[DataRequired()])
     pwCapitalAmount = IntegerField('Amount of capitals in password', validators=[DataRequired()])
+    pwlowercaseAmount = IntegerField('Amount of lowercases in password', validators=[DataRequired()])
+    pwlastpassword = IntegerField('n last passwords', validators=[DataRequired()])
     failedAttemptsMax = IntegerField('Amount of failed connections attempts', validators=[DataRequired()])
 
 
@@ -78,7 +157,7 @@ def index():
 
 @app.route('/ajouterutilisateur',methods=['GET','POST'])
 def ajouterutilisateur():
-    from database import db, User
+    from database import db, User,Passwords
     form = RegisterForm()
     if form.validate_on_submit():
         user = User.query.filter_by(username=form.username.data).first()
@@ -88,6 +167,7 @@ def ajouterutilisateur():
             new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,
                             nombre_aleatoire=nbr, failedAttempts=0, isBlocked=False, role=form.roles.data,version_hashage='sha256')
             db.session.add(new_user)
+            db.session.add(generate_password_hash(form.password.data, method='sha256'))
             db.session.commit()
             return '<h1> new user has been added </h1>'
         else :
@@ -158,6 +238,7 @@ def security_parameters():
             sp.pwSpecialCharacterAmount = form.pwSpecialCharacterAmount.data
             sp.pwNumberAmount = form.pwNumberAmount.data
             sp.pwCapitalAmount = form.pwCapitalAmount.data
+            sp.pwlowercaseAmount = form.pwlowercaseAmount.data
             sp.failedAttemptsMax = form.failedAttemptsMax.data
             db.session.commit()
 

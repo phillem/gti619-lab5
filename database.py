@@ -8,6 +8,10 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 
+class Passwords(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    password = db.Column(db.String(15))
+
 
 class User(db.Model):
     __tablename__ = "users"
@@ -44,8 +48,10 @@ class SecurityParameters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     failedAttemptsMax = db.Column(db.Integer)
     pwCapitalAmount = db.Column(db.Integer)
+    pwlowercaseAmount = db.Column(db.Integer)
     pwNumberAmount = db.Column(db.Integer)
     pwSpecialCharacterAmount = db.Column(db.Integer)
+    pwlastpassword = db.Column(db.Integer)
     passwordMin = db.Column(db.Integer)
     passwordMax = db.Column(db.Integer)
     usernameMin = db.Column(db.Integer)

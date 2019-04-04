@@ -52,12 +52,26 @@ if __name__ == "__main__":
     utilisateur2.nombre_aleatoire=num2
 
 
+
+    '''def validator_form_special_character(form, field):
+        sp = SecurityParameters.query.first()
+        if (nbr_special_character(field.data) != sp.pwSpecialCharacterAmount):
+            raise ValidationError(
+                'Le mot de passe doit contenir au moins ' + str(sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')'''
+    '''def validator_form_chiffre(form, field):
+               sp = SecurityParameters.query.first()
+               if (nbr_lowercase(field.data) != sp.pwlowercaseAmount):
+                   raise ValidationError(
+                       'Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'minuscules')'''
+
     securityParameters = database.SecurityParameters()
     securityParameters.pwSpecialCharacterAmount = 0
     securityParameters.pwNumberAmount = 0
     securityParameters.pwCapitalAmount = 0
     securityParameters.failedAttemptsMax = 5
     securityParameters.usernameMin = 4
+    securityParameters.pwlowercaseAmount = 3
+    securityParameters.pwlastpassword = 10
     securityParameters.usernameMax = 80
     securityParameters.passwordMin = 4
     securityParameters.passwordMax = 20
