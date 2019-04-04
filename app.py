@@ -40,14 +40,14 @@ def nbr_special_character(s) :
 def nbr_uppercase(s):
     count = 0
     for i in s :
-        if (i.islower()):
+        if (i.isupper()):
             count = count + 1
     return count
 
 def nbr_lowercase(s):
     count = 0
     for i in s :
-        if (i.isupper()):
+        if (i.islower()):
             count = count + 1
     return count
 
@@ -87,12 +87,12 @@ class RegisterForm(FlaskForm):
     def validator_form_lowercase(form,field):
         sp = SecurityParameters.query.first()
         if(nbr_lowercase(field.data)<sp.pwlowercaseAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwlowercaseAmount)+'minuscules')
+            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwlowercaseAmount)+' minuscules')
 
     def validator_form_chiffre(form, field):
         sp = SecurityParameters.query.first()
         if (nbr_lowercase(field.data) <sp.pwlowercaseAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'majuscules')
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + ' chiffres')
 
     def validator_form_special_character(form,field):
         sp = SecurityParameters.query.first()
