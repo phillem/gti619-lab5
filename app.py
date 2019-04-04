@@ -5,10 +5,11 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_table import Col, Table
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField
+from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField,SelectField
 from wtforms.validators import InputRequired, Email, Length, DataRequired
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db, SecurityParameters, User, Client
+from init_db import random_alphanumeric
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = "secretkey"
@@ -29,6 +30,8 @@ class TableClients(Table):
     phone = Col('Telephone')
 
 
+
+
 class LoginForm(FlaskForm):
     sp = SecurityParameters.query.first()
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
@@ -37,10 +40,13 @@ class LoginForm(FlaskForm):
 
 
 class RegisterForm(FlaskForm):
+    choices = [('C_affaire', 'Préposé aux clients d affaires' ), ('C_residentiel', 'Préposé aux clients résidentiels')]
+
     sp = SecurityParameters.query.first()
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
-    email = StringField('email', validators=[InputRequired(), Email(message='Invalid email'), Length(max=50)])
-    password = PasswordField('password', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+    email = StringField('email', validators=[InputRequired(), Email(message='email invalide'), Length(max=50)])
+    password = PasswordField('Saisir un mot de passe', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
+    roles = SelectField(u'Role de l utilisateur', validators=[DataRequired()], choices=choices)
 
 
 class changementmdpForm(FlaskForm):
@@ -70,6 +76,27 @@ class SecurityParametersForm(FlaskForm):
 def index():
     return render_template('index.html')
 
+@app.route('/ajouterutilisateur',methods=['GET','POST'])
+def ajouterutilisateur():
+    from database import db, User
+    form = RegisterForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(username=form.username.data).first()
+        if user is None :
+            nbr = random_alphanumeric()
+            hashed_password = generate_password_hash(form.password.data + nbr, method='sha256')
+            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,
+                            nombre_aleatoire=nbr, failedAttempts=0, isBlocked=False, role=form.roles.data,version_hashage='sha256')
+            db.session.add(new_user)
+            db.session.commit()
+            return '<h1> new user has been added </h1>'
+        else :
+            return  "le compte utilisateur existe déja "
+
+    return render_template('signup.html', form=form)
+
+
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -82,7 +109,7 @@ def login():
         if user:
             if user.isBlocked:
                 return render_template('login.html', form=form, error='Votre compte est bloque, trop de tentatives')
-            elif check_password_hash(user.password, form.password.data):
+            elif check_password_hash(user.password, form.password.data+user.nombre_aleatoire):
                 user.failedAttempts = 0
                 db.session.commit()
                 login_user(user, remember=form.remember.data)
@@ -229,4 +256,4 @@ def load_user(id):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

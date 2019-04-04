@@ -19,6 +19,7 @@ class User(db.Model):
     failedAttempts = db.Column(db.Integer, default=0)
     isBlocked = db.Column(db.Boolean, default=False)
     role = db.Column(db.String(50))
+    version_hashage = db.Column(db.String(50))
 
     def is_authenticated(self):
         return True
