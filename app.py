@@ -27,7 +27,7 @@ tab=['£','!','@','+','*','*','$','=','£','%']
 
 def is_special_character(l):
     if l in tab :
-        return l
+        return True
 
 def nbr_special_character(s) :
     count = 0
@@ -80,23 +80,23 @@ class RegisterForm(FlaskForm):
 
     def validator_form_uppercase(form,field):
         sp = SecurityParameters.query.first()
-        if(nbr_uppercase(field.data)!=sp.pwCapitalAmount):
+        if(nbr_uppercase(field.data)<sp.pwCapitalAmount):
             raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwCapitalAmount)+' majuscules')
 
 
     def validator_form_lowercase(form,field):
         sp = SecurityParameters.query.first()
-        if(nbr_lowercase(field.data)!=sp.pwlowercaseAmount):
+        if(nbr_lowercase(field.data)<sp.pwlowercaseAmount):
             raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwlowercaseAmount)+'minuscules')
 
     def validator_form_chiffre(form, field):
         sp = SecurityParameters.query.first()
-        if (nbr_lowercase(field.data) != sp.pwlowercaseAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'minuscules')
+        if (nbr_lowercase(field.data) <sp.pwlowercaseAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'majuscules')
 
     def validator_form_special_character(form,field):
         sp = SecurityParameters.query.first()
-        if (nbr_special_character(field.data) != sp.pwSpecialCharacterAmount):
+        if (nbr_special_character(field.data) < sp.pwSpecialCharacterAmount):
             raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')
 
     '''def validator_password(form, field):
@@ -104,10 +104,10 @@ class RegisterForm(FlaskForm):
         sp = SecurityParameters.query.first()
         bool = False
         count = 0
-        passwords = Passwords.query.limit(sp.pwlastpassword)
+        passwords = Passwords.query.limit(sp.pwlastpassword).all()
 
         while bool==False & count<sp.pwlastpassword :
-            if check_password_hash(field.data,passwords.get(count)):
+            if check_password_hash(field.data, passwords.query.get(count).password):
                 bool = True
             count=count+1
         if bool==False :
@@ -166,8 +166,9 @@ def ajouterutilisateur():
             hashed_password = generate_password_hash(form.password.data + nbr, method='sha256')
             new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,
                             nombre_aleatoire=nbr, failedAttempts=0, isBlocked=False, role=form.roles.data,version_hashage='sha256')
+            password = Passwords(password=generate_password_hash(form.password.data, method='sha256'))
             db.session.add(new_user)
-            db.session.add(generate_password_hash(form.password.data, method='sha256'))
+            db.session.add(password)
             db.session.commit()
             return '<h1> new user has been added </h1>'
         else :
