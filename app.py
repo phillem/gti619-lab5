@@ -99,19 +99,20 @@ class RegisterForm(FlaskForm):
         if (nbr_special_character(field.data) < sp.pwSpecialCharacterAmount):
             raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')
 
-    '''def validator_password(form, field):
+    def validator_password(form, field):
         from database import db,Passwords
         sp = SecurityParameters.query.first()
         bool = False
-        count = 0
-        passwords = Passwords.query.limit(sp.pwlastpassword).all()
-
-        while bool==False & count<sp.pwlastpassword :
-            if check_password_hash(field.data, passwords.query.get(count).password):
+        count = 1
+        #passwords = Passwords.query.limit(sp.pwlastpassword).all()
+        #User.query.filter_by(username=form.username.data
+        while bool==False & count<=sp.pwlastpassword :
+            password = Passwords.query.filter_by(id=count).first()
+            if password is None or check_password_hash(field.data,password.password):
                 bool = True
             count=count+1
         if bool==False :
-            raise ValidationError('Veuillez trouver un autre mot de passe')'''
+            raise ValidationError('Veuillez trouver un autre mot de passe')
 
 
     choices = [('C_affaire', 'Préposé aux clients d affaires' ), ('C_residentiel', 'Préposé aux clients résidentiels')]
@@ -122,7 +123,7 @@ class RegisterForm(FlaskForm):
     password_length = Length(min=sp.passwordMin, max=sp.passwordMax ,message='longueur doit etre entre '+str(sp.passwordMin)+'et '+str(sp.passwordMax))
     password_required = InputRequired(message='PASSWORD_NOT_PROVIDED')
 
-    password = PasswordField('Saisir un mot de passe', validators=[password_required,password_length,validator_form_uppercase,validator_form_lowercase,validator_form_chiffre,validator_form_special_character])
+    password = PasswordField('Saisir un mot de passe', validators=[password_required,password_length,validator_form_uppercase,validator_form_lowercase,validator_form_chiffre,validator_password,validator_form_special_character,validator_password])
     roles = SelectField(u'Role de l utilisateur', validators=[DataRequired()], choices=choices)
 
 
