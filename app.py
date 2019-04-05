@@ -5,8 +5,8 @@ from flask_bootstrap import Bootstrap
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_table import Col, Table
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField,SelectField
-from wtforms.validators import InputRequired, Email, Length, DataRequired,ValidationError
+from wtforms import StringField, PasswordField, BooleanField, IntegerField, HiddenField, SelectField
+from wtforms.validators import InputRequired, Email, Length, DataRequired, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db, SecurityParameters, User, Client
 from init_db import random_alphanumeric
@@ -21,15 +21,15 @@ login_manager.init_app(app)
 
 login_manager.login_view = 'login'
 
+tab = ['£', '!', '@', '+', '*', '*', '$', '=', '£', '%']
 
-
-tab=['£','!','@','+','*','*','$','=','£','%']
 
 def is_special_character(l):
-    if l in tab :
+    if l in tab:
         return True
 
-def nbr_special_character(s) :
+
+def nbr_special_character(s):
     count = 0
     for x in s:
         if is_special_character(x):
@@ -39,17 +39,19 @@ def nbr_special_character(s) :
 
 def nbr_uppercase(s):
     count = 0
-    for i in s :
+    for i in s:
         if (i.isupper()):
             count = count + 1
     return count
 
+
 def nbr_lowercase(s):
     count = 0
-    for i in s :
+    for i in s:
         if (i.islower()):
             count = count + 1
     return count
+
 
 def nbr_chiffre(s):
     return sum(c.isdigit() for c in s)
@@ -63,67 +65,65 @@ class TableClients(Table):
     phone = Col('Telephone')
 
 
-
-
 class LoginForm(FlaskForm):
-
     sp = SecurityParameters.query.first()
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
     password = PasswordField('password', validators=[InputRequired(), Length(min=sp.passwordMin, max=sp.passwordMax)])
     remember = BooleanField('Remember me')
 
 
-
-
 class RegisterForm(FlaskForm):
     sp = SecurityParameters.query.first()
 
-    def validator_form_uppercase(form,field):
+    def validator_form_uppercase(form, field):
         sp = SecurityParameters.query.first()
-        if(nbr_uppercase(field.data)<sp.pwCapitalAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwCapitalAmount)+' majuscules')
+        if (nbr_uppercase(field.data) < sp.pwCapitalAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwCapitalAmount) + ' majuscules')
 
-
-    def validator_form_lowercase(form,field):
+    def validator_form_lowercase(form, field):
         sp = SecurityParameters.query.first()
-        if(nbr_lowercase(field.data)<sp.pwlowercaseAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins '+str(sp.pwlowercaseAmount)+' minuscules')
+        if (nbr_lowercase(field.data) < sp.pwlowercaseAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + 'minuscules')
 
     def validator_form_chiffre(form, field):
         sp = SecurityParameters.query.first()
-        if (nbr_lowercase(field.data) <sp.pwlowercaseAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwlowercaseAmount) + ' chiffres')
+        if (nbr_chiffre(field.data) < sp.pwNumberAmount):
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwNumberAmount) + ' chiffres')
 
-    def validator_form_special_character(form,field):
+    def validator_form_special_character(form, field):
         sp = SecurityParameters.query.first()
         if (nbr_special_character(field.data) < sp.pwSpecialCharacterAmount):
-            raise ValidationError('Le mot de passe doit contenir au moins ' + str(sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')
+            raise ValidationError('Le mot de passe doit contenir au moins ' + str(
+                sp.pwSpecialCharacterAmount) + ' caractères speciaux parmi £ ! @ + * $ = £ %')
 
     def validator_password(form, field):
-        from database import db,Passwords
+        from database import db, Passwords
         sp = SecurityParameters.query.first()
         bool = False
         count = 1
-        #passwords = Passwords.query.limit(sp.pwlastpassword).all()
-        #User.query.filter_by(username=form.username.data
-        while bool==False & count<=sp.pwlastpassword :
+        # passwords = Passwords.query.limit(sp.pwlastpassword).all()
+        # User.query.filter_by(username=form.username.data
+        while bool == False & count <= sp.pwlastpassword:
             password = Passwords.query.filter_by(id=count).first()
-            if password is None or check_password_hash(field.data,password.password):
+            if password is None or check_password_hash(field.data, password.password):
                 bool = True
-            count=count+1
-        if bool==False :
+            count = count + 1
+        if bool == False:
             raise ValidationError('Veuillez trouver un autre mot de passe')
 
-
-    choices = [('C_affaire', 'Préposé aux clients d affaires' ), ('C_residentiel', 'Préposé aux clients résidentiels')]
+    choices = [('C_affaire', 'Préposé aux clients d affaires'), ('C_residentiel', 'Préposé aux clients résidentiels')]
 
     username = StringField('username', validators=[InputRequired(), Length(min=sp.usernameMin, max=sp.usernameMax)])
     email = StringField('email', validators=[InputRequired(), Email(message='email invalide'), Length(max=50)])
 
-    password_length = Length(min=sp.passwordMin, max=sp.passwordMax ,message='longueur doit etre entre '+str(sp.passwordMin)+'et '+str(sp.passwordMax))
+    password_length = Length(min=sp.passwordMin, max=sp.passwordMax,
+                             message='longueur doit etre entre ' + str(sp.passwordMin) + 'et ' + str(sp.passwordMax))
     password_required = InputRequired(message='PASSWORD_NOT_PROVIDED')
 
-    password = PasswordField('Saisir un mot de passe', validators=[password_required,password_length,validator_form_uppercase,validator_form_lowercase,validator_form_chiffre,validator_password,validator_form_special_character,validator_password])
+    password = PasswordField('Saisir un mot de passe',
+                             validators=[password_required, password_length, validator_form_uppercase,
+                                         validator_form_lowercase, validator_form_chiffre, validator_password,
+                                         validator_form_special_character, validator_password])
     roles = SelectField(u'Role de l utilisateur', validators=[DataRequired()], choices=choices)
 
 
@@ -156,28 +156,31 @@ class SecurityParametersForm(FlaskForm):
 def index():
     return render_template('index.html')
 
-@app.route('/ajouterutilisateur',methods=['GET','POST'])
+
+@app.route('/ajouterutilisateur', methods=['GET', 'POST'])
+@login_required
 def ajouterutilisateur():
-    from database import db, User,Passwords
-    form = RegisterForm()
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-        if user is None :
-            nbr = random_alphanumeric()
-            hashed_password = generate_password_hash(form.password.data + nbr, method='sha256')
-            new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,
-                            nombre_aleatoire=nbr, failedAttempts=0, isBlocked=False, role=form.roles.data,version_hashage='sha256')
-            password = Passwords(password=generate_password_hash(form.password.data, method='sha256'))
-            db.session.add(new_user)
-            db.session.add(password)
-            db.session.commit()
-            return '<h1> new user has been added </h1>'
-        else :
-            return  "le compte utilisateur existe déja "
+    from database import db, User, Passwords
+    if current_user.role == "administrateur":
+        form = RegisterForm()
+        if form.validate_on_submit():
+            user = User.query.filter_by(username=form.username.data).first()
+            if user is None:
+                nbr = random_alphanumeric()
+                hashed_password = generate_password_hash(form.password.data + nbr, method='sha256')
+                new_user = User(username=form.username.data, email=form.email.data, password=hashed_password,
+                                nombre_aleatoire=nbr, failedAttempts=0, isBlocked=False, role=form.roles.data,
+                                version_hashage='sha256')
+                password = Passwords(password=generate_password_hash(form.password.data, method='sha256'))
+                db.session.add(new_user)
+                db.session.add(password)
+                db.session.commit()
+                return '<h1> new user has been added </h1>'
+            else:
+                return "le compte utilisateur existe déja "
 
-    return render_template('signup.html', form=form)
-
-
+        return render_template('create_user.html', form=form)
+    return redirect(url_for('index', error='Acces interdit'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -191,7 +194,7 @@ def login():
         if user:
             if user.isBlocked:
                 return render_template('login.html', form=form, error='Votre compte est bloque, trop de tentatives')
-            elif check_password_hash(user.password, form.password.data+user.nombre_aleatoire):
+            elif check_password_hash(user.password, form.password.data + user.nombre_aleatoire):
                 user.failedAttempts = 0
                 db.session.commit()
                 login_user(user, remember=form.remember.data)
@@ -206,7 +209,8 @@ def login():
                 if user.failedAttempts >= sp.failedAttemptsMax:
                     user.isBlocked = True
                 db.session.commit()
-        error = 'Utilisateur ou le mot de passe est incorrect. Tentatives ', str(user.failedAttempts), ' de ', str(sp.failedAttemptsMax)
+        error = 'Utilisateur ou le mot de passe est incorrect. Tentatives ', str(user.failedAttempts), ' de ', str(
+            sp.failedAttemptsMax)
 
     return render_template('login.html', form=form, error=error)
 
@@ -261,7 +265,7 @@ def signup():
         db.session.commit()
         return '<h1> new user has been added </h1>'
         #return  '<h1> '+form.username.data +' '+form.email.data+' '+ form.password.data+ '</h1>'
-    return render_template('signup.html',form=form)
+    return render_template('create_user.html',form=form)
 
 """""
 
