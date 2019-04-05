@@ -1,6 +1,31 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% set active_page = "security_parameters" %}
+
+{% block title %}
+Manage security parameters
+{% endblock %}
 
 {% block content %}
-<h3>{% block title %}Parametres de securites{% endblock %}</h3>
-<p>Options</p>
+    <div class="container">
+
+      <form class="form-parametres" method="POST" action="/security_parameters">
+        <h2 class="form-parametres-heading">Manage security parameters</h2>
+        {{ form.hidden_tag() }}
+        {{ wtf.form_field(form.usernameMin) }}
+          {{ wtf.form_field(form.usernameMax) }}
+          {{ wtf.form_field(form.passwordMin) }}
+          {{ wtf.form_field(form.passwordMax) }}
+          {{ wtf.form_field(form.pwSpecialCharacterAmount) }}
+          {{ wtf.form_field(form.pwNumberAmount) }}
+          {{ wtf.form_field(form.pwCapitalAmount) }}
+          {{ wtf.form_field(form.pwlowercaseAmount) }}
+          {{ wtf.form_field(form.pwlastpassword) }}
+          {{ wtf.form_field(form.failedAttemptsMax) }}
+
+
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Save</button>
+      </form>
+
+    </div> <!-- /container -->
 {% endblock %}

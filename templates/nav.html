@@ -17,16 +17,45 @@
           </button>
           <a class="navbar-brand" href="#">Project name</a>
         </div>
-        <div id="navbar" class="collapse navbar-collapse">
-          <ul class="nav navbar-nav">
-              <li class="{{ 'active' if active_page == 'index' else '' }}">
-              <a id="index" href="{{ url_for('index') }}">Home</a>
-              </li>
-              <li class="{{ 'active' if active_page == 'login' else '' }}">
-              <a id="login" href="{{ url_for('login') }}">Login</a>
-              </li>
-          </ul>
-        </div><!--/.nav-collapse -->
+          <div id="navbar" class="collapse navbar-collapse">
+              <ul class="nav navbar-nav">
+                  {% if g.user.is_authenticated %}
+                      <li class="{{ 'active' if active_page == 'index' else '' }}">
+                          <a id="index" href="{{ url_for('index') }}">Home</a>
+                      </li>
+                      <li class="{{ 'active' if active_page == 'dashboard' else '' }}">
+                          {% if g.user.role == 'administrateur' %}
+                              <a id="dashboard_admin" href="{{ url_for('dashboard_admin') }}">Dashboard</a>
+                          {% endif %}
+                          {% if g.user.role == 'C_affaire' %}
+                              <a id="dashboard_clients_affaire" href="{{ url_for('dashboard_clients_affaires') }}">Dashboard</a>
+                          {% endif %}
+                          {% if g.user.role == 'C_residentiel' %}
+                              <a id="dashboard_clients_residentiels" href="{{ url_for('dashboard_clients_residentiels') }}">Dashboard</a>
+                          {% endif %}
+                      </li>
+
+                          <li class="{{ 'active' if active_page == 'security_parameters' else '' }}">
+                          <a id="security_parameters" href="{{ url_for('security_parameters') }}">Manage</a>
+                      </li>
+                      <li class="{{ 'active' if active_page == 'changermdp' else '' }}">
+                      <a href="{{ url_for('changermdp') }}">Reset password</a>
+                      </li>
+                      <li>
+                          <a href="{{ url_for('logout') }}">Logout</a>
+                      </li>
+
+                  {% elif not g.user.is_authenticated %}
+                      <li class="{{ 'active' if active_page == 'index' else '' }}">
+                          <a id="index" href="{{ url_for('index') }}">Home</a>
+                      </li>
+                      <li class="{{ 'active' if active_page == 'login' else '' }}">
+                          <a id="login" href="{{ url_for('login') }}">Login</a>
+                      </li>
+
+                  {% endif %}
+              </ul>
+          </div><!--/.nav-collapse -->
       </div>
     </nav>
 </body>
