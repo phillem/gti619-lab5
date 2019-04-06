@@ -44,6 +44,16 @@ class User(db.Model):
     def __repr__(self):
         return '<User %r>' % (self.username)
 
+class Connection_log(db.Model):
+    authenticationId = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, db.ForeignKey('users.id'),
+                       nullable=False)
+    user = db.relationship('User',
+                               backref=db.backref('connection', lazy=True))
+    time_connection = db.Column(db.DateTime, nullable=False,
+                                default=datetime.utcnow)
+    is_succesful = db.Column(db.Boolean)
+
 
 class SecurityParameters(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -74,13 +84,4 @@ class Client(db.Model):
         self.phone = phone
         self.typeClient = typeClient
 
-class Connection_log(db.Model):
-    authenticationId = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, db.ForeignKey('user.id'),
-                       nullable=False)
-    user = db.relationship('User',
-                               backref=db.backref('connection', lazy=True))
-    time_connection = db.Column(db.DateTime, nullable=False,
-                                default=datetime.utcnow)
-    is_succesful = db.Column(db.Boolean)
 

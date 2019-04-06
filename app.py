@@ -209,11 +209,11 @@ def login():
                 elif user.role == 'C_affaire':
                     db.session.add(user_connection)
                     db.session.commit()
-                    return redirect(url_for('dashboard_C_affaire'))
+                    return redirect(url_for('dashboard_clients_affaires'))
                 elif user.role == 'C_residentiel':
                     db.session.add(user_connection)
                     db.session.commit()
-                    return redirect(url_for('dashboard_C_residentiels'))
+                    return redirect(url_for('dashboard_clients_residentiels'))
             else:
                 user_connection.is_succesful = False
                 db.session.add(user_connection)
@@ -248,7 +248,7 @@ def logout():
 def before_request():
     g.user = current_user
     session.permanent = True
-    app.permanent_session_lifetime = timedelta(minutes=5)
+    app.permanent_session_lifetime = timedelta(seconds=5)
 
 
 @app.route('/security_parameters', methods=['GET', 'POST'])
@@ -275,7 +275,7 @@ def security_parameters():
     return redirect(url_for('index', error='Acces interdit'))
 
 
-"""""@app.route('/signup',methods=['GET','POST'])
+@app.route('/signup',methods=['GET','POST'])
 def signup():
     from database import db,User
     form = RegisterForm()
@@ -289,7 +289,6 @@ def signup():
         #return  '<h1> '+form.username.data +' '+form.email.data+' '+ form.password.data+ '</h1>'
     return render_template('create_user.html',form=form)
 
-"""""
 
 
 @app.route('/changermdp', methods=['GET', 'POST'])
